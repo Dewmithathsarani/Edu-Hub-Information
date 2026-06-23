@@ -1,0 +1,10 @@
+{
+  "extends": "@edu-hub/typescript-config/base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src",
+    "moduleResolution": "node",
+    "strict": true
+  },
+  "include": ["src"]
+}

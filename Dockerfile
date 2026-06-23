@@ -16,7 +16,7 @@ ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD="true"
 RUN pnpm install --frozen-lockfile
 
 # Build the api and its dependencies
-RUN pnpm --filter api build
+RUN pnpm --filter api... run build
 
 # Expose the API port
 EXPOSE 5001
