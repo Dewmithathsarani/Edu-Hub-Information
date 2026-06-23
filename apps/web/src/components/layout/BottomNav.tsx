@@ -25,7 +25,7 @@ export function BottomNav() {
               key={item.name}
               href={item.href}
               className={`flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${
-                isActive ? 'text-[var(--color-primary-light)]' : 'text-[var(--color-text-tertiary)] hover:text-[var(--color-text-secondary)]'
+                isActive ? 'text-[var(--color-primary-base)]' : 'text-[var(--color-text-tertiary)] hover:text-[var(--color-text-secondary)]'
               }`}
             >
               <item.icon className="w-6 h-6" />
