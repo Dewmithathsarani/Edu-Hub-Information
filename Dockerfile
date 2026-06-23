@@ -1,4 +1,4 @@
-FROM node:18-alpine
+FROM node:20-alpine
 
 # Install necessary system libraries
 RUN apk add --no-cache libc6-compat python3 make g++
