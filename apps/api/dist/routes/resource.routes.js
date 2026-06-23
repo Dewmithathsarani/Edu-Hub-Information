@@ -1,0 +1,12 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const resource_controller_1 = require("../controllers/resource.controller");
+const auth_1 = require("../middleware/auth");
+const upload_1 = require("../middleware/upload");
+const router = (0, express_1.Router)();
+router.use(auth_1.protect);
+router.get('/', resource_controller_1.ResourceController.getResources);
+router.post('/', upload_1.uploadMiddleware.single('file'), resource_controller_1.ResourceController.uploadResource);
+router.get('/my-uploads', resource_controller_1.ResourceController.getMyUploads);
+exports.default = router;

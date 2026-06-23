@@ -1,0 +1,48 @@
+volumes:
+  mongodb_data:
+  redis_data:
+  root_node_modules:
+  web_node_modules:
+  web_next_build:
+
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: eduhub_mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    restart: unless-stopped
+
+  redis:
+    image: redis:alpine
+    container_name: eduhub_redis
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+  web:
+    image: node:20-alpine
+    container_name: eduhub_web
+    working_dir: /app
+    ports:
+      - "3000:3000"
+      - "5001:5000"
+    environment:
+      - NODE_ENV=development
+      - PUPPETEER_SKIP_DOWNLOAD=true
+      - WATCHPACK_POLLING=true
+      - CHOKIDAR_USEPOLLING=true
+      - NEXT_PUBLIC_API_URL=http://localhost:5001/api/v1
+      - MONGO_URI=mongodb://mongodb:27017/eduhub
+      - REDIS_URL=redis://redis:6379
+    volumes:
+      - .:/app
+      - root_node_modules:/app/node_modules
+      - web_node_modules:/app/apps/web/node_modules
+      - web_next_build:/app/apps/web/.next
+    depends_on:
+      - mongodb
+      - redis
+    command: sh -c "corepack enable && corepack prepare pnpm@9.15.2 --activate && pnpm install && pnpm dev"

@@ -1,0 +1,14 @@
+{
+  "name": "@edu-hub/types",
+  "version": "1.0.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "dependencies": {
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@edu-hub/typescript-config": "workspace:*",
+    "typescript": "^5.7.2"
+  }
+}
