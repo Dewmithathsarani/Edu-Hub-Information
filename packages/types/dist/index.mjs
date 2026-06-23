@@ -21,7 +21,8 @@ var createTaskSchema = z2.object({
   subject: z2.string().min(1, "Subject is required"),
   priority: z2.enum(["low", "medium", "high", "urgent"]),
   status: z2.enum(["pending", "in_progress", "completed"]).optional(),
-  dueDate: z2.string().datetime()
+  dueDate: z2.string().datetime(),
+  isExam: z2.boolean().optional()
 });
 var updateTaskSchema = createTaskSchema.partial();
 

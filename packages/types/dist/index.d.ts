@@ -46,6 +46,7 @@ declare const createTaskSchema: z.ZodObject<{
     priority: z.ZodEnum<["low", "medium", "high", "urgent"]>;
     status: z.ZodOptional<z.ZodEnum<["pending", "in_progress", "completed"]>>;
     dueDate: z.ZodString;
+    isExam: z.ZodOptional<z.ZodBoolean>;
 }, "strip", z.ZodTypeAny, {
     title: string;
     subject: string;
@@ -53,6 +54,7 @@ declare const createTaskSchema: z.ZodObject<{
     dueDate: string;
     status?: "pending" | "in_progress" | "completed" | undefined;
     description?: string | undefined;
+    isExam?: boolean | undefined;
 }, {
     title: string;
     subject: string;
@@ -60,6 +62,7 @@ declare const createTaskSchema: z.ZodObject<{
     dueDate: string;
     status?: "pending" | "in_progress" | "completed" | undefined;
     description?: string | undefined;
+    isExam?: boolean | undefined;
 }>;
 declare const updateTaskSchema: z.ZodObject<{
     title: z.ZodOptional<z.ZodString>;
@@ -68,6 +71,7 @@ declare const updateTaskSchema: z.ZodObject<{
     priority: z.ZodOptional<z.ZodEnum<["low", "medium", "high", "urgent"]>>;
     status: z.ZodOptional<z.ZodOptional<z.ZodEnum<["pending", "in_progress", "completed"]>>>;
     dueDate: z.ZodOptional<z.ZodString>;
+    isExam: z.ZodOptional<z.ZodOptional<z.ZodBoolean>>;
 }, "strip", z.ZodTypeAny, {
     status?: "pending" | "in_progress" | "completed" | undefined;
     title?: string | undefined;
@@ -75,6 +79,7 @@ declare const updateTaskSchema: z.ZodObject<{
     subject?: string | undefined;
     priority?: "low" | "medium" | "high" | "urgent" | undefined;
     dueDate?: string | undefined;
+    isExam?: boolean | undefined;
 }, {
     status?: "pending" | "in_progress" | "completed" | undefined;
     title?: string | undefined;
@@ -82,6 +87,7 @@ declare const updateTaskSchema: z.ZodObject<{
     subject?: string | undefined;
     priority?: "low" | "medium" | "high" | "urgent" | undefined;
     dueDate?: string | undefined;
+    isExam?: boolean | undefined;
 }>;
 type CreateTaskDTO = z.infer<typeof createTaskSchema>;
 type UpdateTaskDTO = z.infer<typeof updateTaskSchema>;
@@ -97,6 +103,7 @@ interface TaskResponse {
     completedAt: Date | null;
     createdAt: Date;
     updatedAt: Date;
+    isExam?: boolean;
 }
 
 declare const createGroupSchema: z.ZodObject<{

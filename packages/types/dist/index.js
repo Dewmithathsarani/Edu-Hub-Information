@@ -53,7 +53,8 @@ var createTaskSchema = import_zod2.z.object({
   subject: import_zod2.z.string().min(1, "Subject is required"),
   priority: import_zod2.z.enum(["low", "medium", "high", "urgent"]),
   status: import_zod2.z.enum(["pending", "in_progress", "completed"]).optional(),
-  dueDate: import_zod2.z.string().datetime()
+  dueDate: import_zod2.z.string().datetime(),
+  isExam: import_zod2.z.boolean().optional()
 });
 var updateTaskSchema = createTaskSchema.partial();
 

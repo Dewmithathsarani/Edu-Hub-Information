@@ -6,7 +6,8 @@ export const createTaskSchema = z.object({
   subject: z.string().min(1, 'Subject is required'),
   priority: z.enum(['low', 'medium', 'high', 'urgent']),
   status: z.enum(['pending', 'in_progress', 'completed']).optional(),
-  dueDate: z.string().datetime()
+  dueDate: z.string().datetime(),
+  isExam: z.boolean().optional()
 });
 
 export const updateTaskSchema = createTaskSchema.partial();
@@ -26,4 +27,5 @@ export interface TaskResponse {
   completedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
+  isExam?: boolean;
 }

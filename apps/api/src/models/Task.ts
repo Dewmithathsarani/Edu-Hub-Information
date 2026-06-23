@@ -11,6 +11,7 @@ export interface ITask extends Document {
   completedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
+  isExam: boolean;
 }
 
 const TaskSchema = new Schema<ITask>({
@@ -21,7 +22,8 @@ const TaskSchema = new Schema<ITask>({
   priority: { type: String, enum: ['low', 'medium', 'high', 'urgent'], required: true },
   status: { type: String, enum: ['pending', 'in_progress', 'completed'], default: 'pending' },
   dueDate: { type: Date, required: true },
-  completedAt: { type: Date, default: null }
+  completedAt: { type: Date, default: null },
+  isExam: { type: Boolean, default: false }
 }, {
   timestamps: true
 });

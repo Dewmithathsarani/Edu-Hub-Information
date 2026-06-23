@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ExamCountdownWidget } from '@/components/dashboard/ExamCountdownWidget';
 
 export default function TasksPage() {
   const [aiMode, setAiMode] = useState(false);
@@ -21,9 +22,14 @@ export default function TasksPage() {
 
   const [title, setTitle] = useState('');
   const [subject, setSubject] = useState('');
+  const [isExam, setIsExam] = useState(false);
+  const [examDate, setExamDate] = useState('');
 
   const tasks = aiMode ? aiTasks : standardTasks;
   const isLoading = aiMode ? isAILoading : isStandardLoading;
+
+  const examTasks = tasks?.filter((t: any) => t.isExam && t.status !== 'completed') || [];
+  const regularTasks = tasks?.filter((t: any) => !t.isExam || t.status === 'completed') || [];
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,11 +40,14 @@ export default function TasksPage() {
         title,
         subject,
         priority: 'medium',
-        dueDate: new Date(Date.now() + 86400000).toISOString() // tomorrow
+        dueDate: isExam && examDate ? new Date(examDate).toISOString() : new Date(Date.now() + 86400000).toISOString(),
+        isExam
       });
       setTitle('');
       setSubject('');
-      toast.success('Task created successfully!');
+      setIsExam(false);
+      setExamDate('');
+      toast.success(isExam ? 'Exam countdown created!' : 'Task created successfully!');
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Failed to create task');
     }
@@ -99,6 +108,8 @@ export default function TasksPage() {
         </div>
       </div>
 
+      <ExamCountdownWidget exams={examTasks} />
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Column: Create Task */}
         <div className="lg:col-span-1">
@@ -131,6 +142,40 @@ export default function TasksPage() {
                     className="h-12 bg-[var(--color-bg-tertiary)]/50 border-transparent focus:border-[var(--color-primary-base)] transition-colors rounded-xl font-medium"
                   />
                 </div>
+                
+                <div className="flex items-center space-x-2 pt-1">
+                  <input 
+                    type="checkbox" 
+                    id="isExam" 
+                    checked={isExam} 
+                    onChange={e => setIsExam(e.target.checked)} 
+                    className="w-4 h-4 rounded text-[var(--color-primary-base)] focus:ring-[var(--color-primary-base)] bg-[var(--color-bg-tertiary)] border-[var(--color-border-medium)]"
+                  />
+                  <label htmlFor="isExam" className="text-sm font-bold text-[var(--color-text-secondary)] select-none cursor-pointer">
+                    Set as Exam / Countdown
+                  </label>
+                </div>
+
+                <AnimatePresence>
+                  {isExam && (
+                    <motion.div 
+                      initial={{ opacity: 0, height: 0 }} 
+                      animate={{ opacity: 1, height: 'auto' }} 
+                      exit={{ opacity: 0, height: 0 }}
+                      className="space-y-2 overflow-hidden"
+                    >
+                      <label className="text-sm font-bold text-[var(--color-text-secondary)]">Exam Date & Time</label>
+                      <Input 
+                        type="datetime-local" 
+                        value={examDate} 
+                        onChange={e => setExamDate(e.target.value)}
+                        required={isExam}
+                        className="h-12 bg-[var(--color-bg-tertiary)]/50 border-transparent focus:border-[var(--color-primary-base)] transition-colors rounded-xl font-medium"
+                      />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
                 <Button type="submit" disabled={createTask.isPending} className="w-full h-12 font-bold rounded-xl shadow-glow-primary bg-[var(--color-primary-base)] hover:bg-[var(--color-primary-dark)] transition-colors">
                   {createTask.isPending ? 'Adding...' : 'Add Task'}
                 </Button>
@@ -157,14 +202,14 @@ export default function TasksPage() {
             <div className="text-center py-20 text-[var(--color-text-tertiary)] font-bold animate-pulse">Analyzing tasks...</div>
           ) : error ? (
             <div className="text-center py-20 text-red-500 font-bold bg-red-500/10 rounded-2xl border border-red-500/20">Failed to load tasks.</div>
-          ) : tasks?.length === 0 ? (
+          ) : regularTasks?.length === 0 ? (
             <div className="text-center py-20 border-2 border-dashed border-[var(--color-border-medium)] rounded-3xl text-[var(--color-text-tertiary)] font-bold bg-[var(--color-bg-secondary)]/30">
               No tasks found. Add a new task to get started!
             </div>
           ) : (
             <div className="space-y-3">
               <AnimatePresence>
-                {tasks?.map((task: any, index: number) => (
+                {regularTasks?.map((task: any, index: number) => (
                   <motion.div 
                     key={task._id || task.id}
                     initial={{ opacity: 0, y: 20 }}
