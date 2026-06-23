@@ -14,7 +14,8 @@ const StudyGroupSchema = new mongoose_1.Schema({
         }],
     memberCount: { type: Number, default: 1 },
     maxMembers: { type: Number, default: 20 },
-    isActive: { type: Boolean, default: true }
+    isActive: { type: Boolean, default: true },
+    isMainStream: { type: Boolean, default: false }
 }, {
     timestamps: true
 });

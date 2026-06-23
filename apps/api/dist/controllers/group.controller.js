@@ -2,18 +2,25 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.GroupController = void 0;
 const models_1 = require("../models");
+const types_1 = require("@edu-hub/types");
 class GroupController {
     static async createGroup(req, res) {
         try {
-            const { name, description, subject, maxMembers } = req.body;
-            const creatorId = req.user.userId;
+            const parsed = types_1.createGroupSchema.safeParse(req.body);
+            if (!parsed.success) {
+                res.status(400).json({ success: false, message: 'Validation failed', errors: parsed.error.errors });
+                return;
+            }
+            const { name, description, subject, maxMembers, isMainStream } = parsed.data;
+            const user = req.user;
             const group = await models_1.StudyGroup.create({
                 name,
                 description,
                 subject,
                 maxMembers: maxMembers || 20,
-                createdBy: creatorId,
-                members: [{ userId: creatorId, role: 'owner' }],
+                isMainStream: user.role === 'admin' ? !!isMainStream : false,
+                createdBy: user.userId,
+                members: [{ userId: user.userId, role: 'owner' }],
                 memberCount: 1
             });
             res.status(201).json({ success: true, data: group });
@@ -75,7 +82,23 @@ class GroupController {
             const group = await models_1.StudyGroup.findById(id);
             if (!group)
                 return res.status(404).json({ success: false, message: 'Group not found' });
-            group.members = group.members.filter(m => m.userId.toString() !== userId);
+            const isOwner = group.members.some(m => m.userId.toString() === userId && m.role === 'owner');
+            if (isOwner) {
+                const otherMembers = group.members.filter(m => m.userId.toString() !== userId);
+                if (otherMembers.length > 0) {
+                    // Reassign ownership to the earliest joined member
+                    otherMembers[0].role = 'owner';
+                    group.members = otherMembers;
+                }
+                else {
+                    // Delete group or mark inactive if no members left
+                    group.isActive = false;
+                    group.members = [];
+                }
+            }
+            else {
+                group.members = group.members.filter(m => m.userId.toString() !== userId);
+            }
             group.memberCount = group.members.length;
             await group.save();
             res.json({ success: true, message: 'Left group successfully' });

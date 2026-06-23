@@ -3,6 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.QuizController = void 0;
 const models_1 = require("../models");
 const cache_service_1 = require("../services/cache.service");
+const leaderboard_controller_1 = require("./leaderboard.controller");
+const types_1 = require("@edu-hub/types");
 class QuizController {
     // Get all published quizzes
     static async getQuizzes(req, res) {
@@ -64,9 +66,14 @@ class QuizController {
     // Submit a quiz attempt
     static async submitAttempt(req, res) {
         try {
+            const parsed = types_1.submitQuizSchema.safeParse(req.body);
+            if (!parsed.success) {
+                res.status(400).json({ success: false, message: 'Validation failed', errors: parsed.error.errors });
+                return;
+            }
             const quizId = req.params.id;
             const userId = req.user.userId;
-            const { answers, timeTaken } = req.body; // array of { questionId, selected }
+            const { answers, timeTaken } = parsed.data; // array of { questionId, selected }
             const quiz = await models_1.Quiz.findById(quizId);
             if (!quiz) {
                 res.status(404).json({ success: false, message: 'Quiz not found' });
@@ -98,7 +105,7 @@ class QuizController {
                     isCorrect
                 };
             }).filter(Boolean);
-            const score = (totalCorrect / totalQuestions) * 100;
+            const score = totalQuestions > 0 ? (totalCorrect / totalQuestions) * 100 : 0;
             const attempt = await models_1.QuizAttempt.create({
                 userId,
                 quizId,
@@ -117,9 +124,7 @@ class QuizController {
             // Add XP to user based on correct answers (10 XP per correct answer)
             const xpEarned = totalCorrect * 10;
             if (xpEarned > 0) {
-                // dynamic import or require to avoid circular dependency
-                const { LeaderboardController } = require('./leaderboard.controller');
-                await LeaderboardController.addXP(userId, xpEarned);
+                await leaderboard_controller_1.LeaderboardController.addXP(userId, xpEarned);
             }
             // Return detailed results including explanations
             const results = questions.map(q => {

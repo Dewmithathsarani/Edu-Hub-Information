@@ -30,7 +30,7 @@ export const useMyGroups = () => {
 export const useCreateGroup = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (payload: { name: string; subject: string; description: string; maxMembers: number }) => {
+    mutationFn: async (payload: { name: string; subject: string; description: string; maxMembers: number; isMainStream?: boolean }) => {
       const { data } = await apiClient.post('/groups', payload);
       return data.data;
     },

@@ -17,7 +17,8 @@ const UserSchema = new mongoose_1.Schema({
     badges: { type: [String], default: [] },
     subjects: { type: [String], default: [] },
     lastLoginAt: { type: Date, default: Date.now },
-    deletedAt: { type: Date, default: null }
+    deletedAt: { type: Date, default: null },
+    stream: { type: String, default: null }
 }, {
     timestamps: true
 });

@@ -8,6 +8,7 @@ const router = (0, express_1.Router)();
 router.use(auth_1.protect);
 router.get('/me', user_controller_1.UserController.getProfile);
 router.put('/profile', user_controller_1.UserController.updateProfile);
+router.put('/stream', user_controller_1.UserController.setStream);
 router.post('/avatar', upload_1.uploadMiddleware.single('avatar'), user_controller_1.UserController.updateAvatar);
 router.put('/password', user_controller_1.UserController.changePassword);
 exports.default = router;

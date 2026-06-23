@@ -19,6 +19,24 @@ class LeaderboardController {
             console.error('Failed to add XP', error);
         }
     }
+    // Sync MongoDB users to Redis on boot
+    static async seedLeaderboard() {
+        try {
+            const LEADERBOARD_KEY = 'leaderboard:global';
+            const users = await models_1.User.find({ xp: { $gt: 0 } }).select('xp _id').lean();
+            if (users.length > 0) {
+                const multi = redis_1.redis.multi();
+                users.forEach(user => {
+                    multi.zadd(LEADERBOARD_KEY, user.xp, user._id.toString());
+                });
+                await multi.exec();
+                console.log(`[Leaderboard] Seeded ${users.length} users into Redis`);
+            }
+        }
+        catch (error) {
+            console.error('[Leaderboard] Failed to seed leaderboard:', error);
+        }
+    }
     static async getLeaderboard(req, res) {
         try {
             const LEADERBOARD_KEY = 'leaderboard:global';

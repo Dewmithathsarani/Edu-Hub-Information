@@ -5,7 +5,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.authorize = exports.protect = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret_do_not_use_in_prod';
+const JWT_SECRET = process.env.JWT_SECRET;
+const SAFE_JWT_SECRET = JWT_SECRET || 'dev_secret_only';
 const protect = async (req, res, next) => {
     try {
         let token;
@@ -16,7 +17,7 @@ const protect = async (req, res, next) => {
             res.status(401).json({ success: false, message: 'Not authorized to access this route' });
             return;
         }
-        const decoded = jsonwebtoken_1.default.verify(token, JWT_SECRET);
+        const decoded = jsonwebtoken_1.default.verify(token, SAFE_JWT_SECRET);
         req.user = {
             userId: decoded.userId,
             role: decoded.role

@@ -27,22 +27,48 @@ const taskReminders_1 = require("./jobs/taskReminders");
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 exports.app = app;
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 5001;
+const leaderboard_controller_1 = require("./controllers/leaderboard.controller");
 // Connect to MongoDB
 (0, database_1.connectDB)();
 // Start background jobs
 (0, taskReminders_1.startCronJobs)();
+// Seed leaderboard on boot
+redis_1.redis.on('ready', () => {
+    leaderboard_controller_1.LeaderboardController.seedLeaderboard();
+});
 const limiter = (0, express_rate_limit_1.default)({
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 100, // limit each IP to 100 requests per windowMs
     message: 'Too many requests from this IP, please try again after 15 minutes'
 });
+const authLimiter = (0, express_rate_limit_1.default)({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 10, // limit each IP to 10 requests per windowMs for auth routes
+    message: 'Too many auth requests from this IP, please try again after 15 minutes'
+});
+const allowedOrigins = process.env.FRONTEND_URL
+    ? process.env.FRONTEND_URL.split(',').map(url => url.trim())
+    : ['http://localhost:3000'];
 app.use((0, helmet_1.default)());
-app.use((0, cors_1.default)());
+app.use((0, cors_1.default)({
+    origin: function (origin, callback) {
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin)
+            return callback(null, true);
+        if (allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.includes('*')) {
+            callback(null, true);
+        }
+        else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    credentials: true
+}));
 app.use(express_1.default.json());
 app.use('/api/', limiter);
 // Routes
-app.use('/api/v1/auth', auth_routes_1.default);
+app.use('/api/v1/auth', authLimiter, auth_routes_1.default);
 app.use('/api/v1/tasks', task_routes_1.default);
 app.use('/api/v1/notifications', notification_routes_1.default);
 app.use('/api/v1/users', user_routes_1.default);

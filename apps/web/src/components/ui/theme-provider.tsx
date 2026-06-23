@@ -21,6 +21,7 @@ export function ThemeProvider({
   React.useEffect(() => {
     const savedTheme = localStorage.getItem('theme') as Theme | null;
     if (savedTheme) {
+      // eslint-disable-next-line
       setThemeState(savedTheme);
     }
   }, []);

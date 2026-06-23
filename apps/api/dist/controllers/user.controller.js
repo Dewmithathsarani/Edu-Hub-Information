@@ -34,7 +34,37 @@ class UserController {
             if (subjects)
                 user.subjects = subjects;
             await user.save();
-            res.json({ success: true, data: { id: user.id, name: user.name, email: user.email, avatar: user.avatar, subjects: user.subjects } });
+            res.json({ success: true, data: { id: user.id, name: user.name, email: user.email, avatar: user.avatar, subjects: user.subjects, stream: user.stream } });
+        }
+        catch (error) {
+            res.status(500).json({ success: false, message: 'Server Error' });
+        }
+    }
+    static async setStream(req, res) {
+        try {
+            const { stream } = req.body;
+            if (!stream) {
+                res.status(400).json({ success: false, message: 'Stream is required' });
+                return;
+            }
+            const user = await models_1.User.findById(req.user.userId);
+            if (!user) {
+                res.status(404).json({ success: false, message: 'User not found' });
+                return;
+            }
+            user.stream = stream;
+            await user.save();
+            // Find the main stream group and add the user
+            const streamGroup = await models_1.StudyGroup.findOne({ name: stream, isMainStream: true });
+            if (streamGroup) {
+                const isMember = streamGroup.members.some(m => m.userId.toString() === user.id);
+                if (!isMember) {
+                    streamGroup.members.push({ userId: user.id, role: 'member', joinedAt: new Date() });
+                    streamGroup.memberCount += 1;
+                    await streamGroup.save();
+                }
+            }
+            res.json({ success: true, data: { stream: user.stream } });
         }
         catch (error) {
             res.status(500).json({ success: false, message: 'Server Error' });

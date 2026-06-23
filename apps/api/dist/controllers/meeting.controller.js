@@ -2,14 +2,20 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MeetingController = void 0;
 const models_1 = require("../models");
+const types_1 = require("@edu-hub/types");
 class MeetingController {
     static async createMeeting(req, res) {
         try {
-            const { title, description, scheduledFor, zoomLink, groupId } = req.body;
+            const parsed = types_1.createMeetingSchema.safeParse(req.body);
+            if (!parsed.success) {
+                return res.status(400).json({ success: false, message: 'Validation failed', errors: parsed.error.errors });
+            }
+            const { title, topic, scheduledFor, groupId } = parsed.data;
+            const zoomLink = req.body.zoomLink; // Keep zoomLink untyped or add to schema if needed
             const hostId = req.user.userId;
             const meeting = await models_1.Meeting.create({
                 title,
-                description,
+                description: topic || req.body.description,
                 scheduledAt: scheduledFor || new Date(),
                 duration: 60,
                 zoomLink,
@@ -90,10 +96,16 @@ class MeetingController {
             res.write(`data: ${data}\n\n`);
             sentenceIndex++;
         }, 3000); // Send a new sentence every 3 seconds
-        req.on('close', () => {
+        const cleanup = () => {
             clearInterval(interval);
-            res.end();
-        });
+            if (!res.writableEnded)
+                res.end();
+        };
+        req.on('close', cleanup);
+        req.on('end', cleanup);
+        req.on('error', cleanup);
+        res.on('close', cleanup);
+        res.on('error', cleanup);
     }
 }
 exports.MeetingController = MeetingController;

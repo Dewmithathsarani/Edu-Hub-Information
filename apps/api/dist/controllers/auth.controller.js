@@ -9,14 +9,23 @@ const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const google_auth_library_1 = require("google-auth-library");
 const models_1 = require("../models");
 const types_1 = require("@edu-hub/types");
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret_do_not_use_in_prod';
+const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRES_IN = '1d';
-const REFRESH_SECRET = process.env.REFRESH_SECRET || 'refresh_secret_fallback';
+const REFRESH_SECRET = process.env.REFRESH_SECRET;
 const REFRESH_EXPIRES_IN = '7d';
+if (!JWT_SECRET || !REFRESH_SECRET) {
+    console.error('CRITICAL: JWT_SECRET and REFRESH_SECRET must be set in environment variables');
+    if (process.env.NODE_ENV === 'production') {
+        process.exit(1);
+    }
+}
+// Fallback only for development if strictly needed, but better to fail fast
+const SAFE_JWT_SECRET = JWT_SECRET || 'dev_secret_only';
+const SAFE_REFRESH_SECRET = REFRESH_SECRET || 'dev_refresh_secret_only';
 const googleClient = new google_auth_library_1.OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const generateTokens = (userId, role) => {
-    const accessToken = jsonwebtoken_1.default.sign({ userId, role }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
-    const refreshToken = jsonwebtoken_1.default.sign({ userId, role }, REFRESH_SECRET, { expiresIn: REFRESH_EXPIRES_IN });
+    const accessToken = jsonwebtoken_1.default.sign({ userId, role }, SAFE_JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+    const refreshToken = jsonwebtoken_1.default.sign({ userId, role }, SAFE_REFRESH_SECRET, { expiresIn: REFRESH_EXPIRES_IN });
     return { accessToken, refreshToken };
 };
 class AuthController {
@@ -40,12 +49,13 @@ class AuthController {
                 email,
                 password: hashedPassword,
                 avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${name}`,
+                role: email === 'eduhubinformation@gmail.com' ? 'admin' : 'student'
             });
             const { accessToken, refreshToken } = generateTokens(user.id, user.role);
             res.status(201).json({
                 success: true,
                 data: {
-                    user: { id: user.id, name: user.name, email: user.email, role: user.role, avatar: user.avatar },
+                    user: { id: user.id, name: user.name, email: user.email, role: user.role, avatar: user.avatar, stream: user.stream },
                     accessToken,
                     refreshToken
                 }
@@ -79,7 +89,7 @@ class AuthController {
             res.json({
                 success: true,
                 data: {
-                    user: { id: user.id, name: user.name, email: user.email, role: user.role, avatar: user.avatar },
+                    user: { id: user.id, name: user.name, email: user.email, role: user.role, avatar: user.avatar, stream: user.stream },
                     accessToken,
                     refreshToken
                 }
@@ -112,6 +122,7 @@ class AuthController {
                     email: payload.email,
                     googleId: payload.sub,
                     avatar: payload.picture || `https://api.dicebear.com/7.x/initials/svg?seed=${payload.name}`,
+                    role: payload.email === 'eduhubinformation@gmail.com' ? 'admin' : 'student'
                 });
             }
             else if (!user.googleId) {
@@ -129,7 +140,7 @@ class AuthController {
             res.json({
                 success: true,
                 data: {
-                    user: { id: user.id, name: user.name, email: user.email, role: user.role, avatar: user.avatar },
+                    user: { id: user.id, name: user.name, email: user.email, role: user.role, avatar: user.avatar, stream: user.stream },
                     accessToken,
                     refreshToken
                 }
@@ -146,7 +157,7 @@ class AuthController {
                 res.status(400).json({ success: false, message: 'Refresh token is required' });
                 return;
             }
-            const decoded = jsonwebtoken_1.default.verify(refreshToken, REFRESH_SECRET);
+            const decoded = jsonwebtoken_1.default.verify(refreshToken, SAFE_REFRESH_SECRET);
             const { accessToken: newAccess, refreshToken: newRefresh } = generateTokens(decoded.userId, decoded.role);
             res.json({
                 success: true,

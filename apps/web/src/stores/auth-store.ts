@@ -18,6 +18,7 @@ interface User {
   role: string;
   avatar?: string;
   stream?: string;
+  subjects?: string;
 }
 
 interface AuthState {
