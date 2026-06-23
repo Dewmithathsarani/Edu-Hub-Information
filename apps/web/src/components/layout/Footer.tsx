@@ -22,8 +22,6 @@ export function Footer() {
             <ul className="space-y-3 text-sm text-[var(--color-text-secondary)]">
               <li><Link href="/#features" className="hover:text-[var(--color-primary-base)] transition-colors">Features</Link></li>
               <li><Link href="/#pricing" className="hover:text-[var(--color-primary-base)] transition-colors">Pricing</Link></li>
-              <li><Link href="/resources" className="hover:text-[var(--color-primary-base)] transition-colors">Study Material</Link></li>
-              <li><Link href="/tasks" className="hover:text-[var(--color-primary-base)] transition-colors">Task Manager</Link></li>
             </ul>
           </div>
           
