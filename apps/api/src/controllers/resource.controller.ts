@@ -25,7 +25,7 @@ export class ResourceController {
 
       const resources = await Resource.find(query)
         .sort({ createdAt: -1 })
-        .populate('uploaderId', 'name avatar');
+        .populate('uploadedBy', 'name avatar');
 
       await cacheService.set(cacheKey, resources, 300);
 
