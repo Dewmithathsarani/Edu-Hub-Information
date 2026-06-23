@@ -1,7 +1,4 @@
-FROM node:20-alpine
-
-# Install necessary system libraries
-RUN apk add --no-cache libc6-compat python3 make g++
+FROM node:20-slim
 
 # Enable pnpm
 RUN corepack enable pnpm
@@ -11,7 +8,7 @@ WORKDIR /app
 # Copy the entire monorepo
 COPY . .
 
-# Set environment variables to skip puppeteer download (if it tries to download)
+# Set environment variables to skip puppeteer download
 ENV PUPPETEER_SKIP_DOWNLOAD="true"
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD="true"
 
